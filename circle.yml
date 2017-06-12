@@ -1,0 +1,27 @@
+general:
+  branches:
+    only:
+      - master
+      - staging
+
+dependencies:
+  pre:
+    - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update --version=156.0.0
+    - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update kubectl --version=156.0.0
+  override:
+    - echo ${GCLOUD_KEY} | base64 --decode > service-account.json
+
+    - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file service-account.json
+    - sudo /opt/google-cloud-sdk/bin/gcloud config set compute/zone europe-west1-c
+    - sudo /opt/google-cloud-sdk/bin/gcloud config set project one-day-only-infrastructure
+    - sudo /opt/google-cloud-sdk/bin/gcloud container clusters get-credentials olympus
+
+deployment:
+  production:
+    branch: master
+    commands:
+      - ./deploy.sh prod
+  staging:
+    branch: staging
+    commands:
+      - ./deploy.sh staging

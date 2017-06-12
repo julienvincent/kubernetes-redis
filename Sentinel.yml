@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-sentinel-${STAGE}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        type: redis
+        role: sentinel
+        stage: ${STAGE}
+    spec:
+      containers:
+        - name: redis-sentinel
+          image: gcr.io/google_containers/redis:v1
+          ports:
+            - containerPort: 26379
+          env:
+            - name: SENTINEL
+              value: "true"

@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: redis-master-${STAGE}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        type: redis
+        role: master
+        stage: ${STAGE}
+    spec:
+      containers:
+        - name: redis-master
+          image: gcr.io/google_containers/redis:v1
+          resources:
+            limits:
+              cpu: "0.1"
+          volumeMounts:
+            - mountPath: /redis-master-data
+              name: data
+          ports:
+            - containerPort: 6379
+          env:
+            - name: MASTER
+              value: "true"
+
+        - name: redis-sentinel
+          image: kubernetes/redis:v1
+          ports:
+            - containerPort: 26379
+          env:
+            - name: SENTINEL
+              value: "true"
+  volumes:
+    - name: data
+      emptyDir: {}
