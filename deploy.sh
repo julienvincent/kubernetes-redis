@@ -18,6 +18,9 @@ if sudo /opt/google-cloud-sdk/bin/kubectl get deployment redis-master-${STAGE}
       updateDeployments
    }
    else {
+      # If no redis deployments exist yet, start the catalyst before furthur
+      # deployments
+      
       sudo /opt/google-cloud-sdk/bin/kubectl create -f _Catalyst.yaml --record
       updateDeployments
    }
