@@ -16,6 +16,10 @@ dependencies:
     - sudo /opt/google-cloud-sdk/bin/gcloud config set project one-day-only-infrastructure
     - sudo /opt/google-cloud-sdk/bin/gcloud container clusters get-credentials olympus
 
+test:
+  override:
+    - echo "NO TESTS"
+
 deployment:
   production:
     branch: master

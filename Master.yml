@@ -25,14 +25,6 @@ spec:
           env:
             - name: MASTER
               value: "true"
-
-        - name: redis-sentinel
-          image: kubernetes/redis:v1
-          ports:
-            - containerPort: 26379
-          env:
-            - name: SENTINEL
-              value: "true"
       volumes:
         - name: data
           emptyDir: {}
