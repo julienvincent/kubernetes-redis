@@ -33,6 +33,6 @@ spec:
           env:
             - name: SENTINEL
               value: "true"
-  volumes:
-    - name: data
-      emptyDir: {}
+      volumes:
+        - name: data
+          emptyDir: {}
