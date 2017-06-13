@@ -13,9 +13,11 @@ spec:
     spec:
       containers:
         - name: redis-sentinel
-          image: gcr.io/google_containers/redis:v1
+          image: ${IMAGE_NAME}
           ports:
             - containerPort: 26379
           env:
             - name: SENTINEL
               value: "true"
+            - name: STAGE
+              value: ${STAGE}

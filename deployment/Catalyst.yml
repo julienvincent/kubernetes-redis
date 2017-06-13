@@ -9,10 +9,12 @@ metadata:
 spec:
   containers:
     - name: master
-      image: gcr.io/google_containers/redis:v1
+      image: ${IMAGE_NAME}
       env:
         - name: MASTER
           value: "true"
+        - name: STAGE
+          value: ${STAGE}
       ports:
         - containerPort: 6379
       resources:
@@ -23,10 +25,12 @@ spec:
           name: data
 
     - name: sentinel
-      image: kubernetes/redis:v1
+      image: ${IMAGE_NAME}
       env:
         - name: SENTINEL
           value: "true"
+        - name: STAGE
+          value: ${STAGE}
       ports:
         - containerPort: 26379
   volumes:

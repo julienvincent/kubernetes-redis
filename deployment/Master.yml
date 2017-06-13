@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: redis-master
-          image: gcr.io/google_containers/redis:v1
+          image: ${IMAGE_NAME}
           resources:
             limits:
               cpu: "0.1"
@@ -25,6 +25,8 @@ spec:
           env:
             - name: MASTER
               value: "true"
+            - name: STAGE
+              value: ${STAGE}
       volumes:
         - name: data
           emptyDir: {}
