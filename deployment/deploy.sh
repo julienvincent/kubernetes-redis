@@ -16,12 +16,16 @@ fi
 
 # Inject environment variables into the deployment and service yml files
 envsubst < deployment/Service.yml > _Service.yml
+envsubst < deployment/SentinelService.yml > _SentinelService.yml
+
 envsubst < deployment/Catalyst.yml > _Catalyst.yml
 envsubst < deployment/Master.yml > _Master.yml
 envsubst < deployment/Sentinel.yml > _Sentinel.yml
 
 function updateDeployments {
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Service.yml --record
+   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _SentinelService.yml --record
+
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Master.yml --record
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Sentinel.yml --record
 }
