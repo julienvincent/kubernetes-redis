@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SERVICE_NAME=redis-${STAGE}
+SERVICE_NAME=redis-sentinel-${STAGE}
 
 function launchmaster() {
   if [[ ! -e /redis-master-data ]]; then
