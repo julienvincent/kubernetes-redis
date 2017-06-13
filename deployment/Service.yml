@@ -6,7 +6,7 @@ spec:
   type: LoadBalancer
   sessionAffinity: ClientIP
   ports:
-      port: 6379
+    - port: 6379
       targetPort: 6379
   selector:
     type: redis
