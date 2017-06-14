@@ -15,7 +15,6 @@ if sudo /opt/google-cloud-sdk/bin/gcloud docker -- push ${IMAGE_NAME}
 fi
 
 # Inject environment variables into the deployment and service yml files
-envsubst < deployment/Service.yml > _Service.yml
 envsubst < deployment/SentinelService.yml > _SentinelService.yml
 
 envsubst < deployment/Catalyst.yml > _Catalyst.yml
@@ -23,7 +22,6 @@ envsubst < deployment/Slave.yml > _Slave.yml
 envsubst < deployment/Sentinel.yml > _Sentinel.yml
 
 function updateDeployments {
-   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Service.yml --record
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _SentinelService.yml --record
 
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Slave.yml --record
