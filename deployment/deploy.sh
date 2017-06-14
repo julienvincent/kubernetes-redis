@@ -26,11 +26,11 @@ function updateDeployments {
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Service.yml --record
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _SentinelService.yml --record
 
-   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Master.yml --record
+   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Slave.yml --record
    sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Sentinel.yml --record
 }
 
-if sudo /opt/google-cloud-sdk/bin/kubectl get deployment redis-master-${STAGE}
+if sudo /opt/google-cloud-sdk/bin/kubectl get deployment redis-${STAGE}
    then {
       updateDeployments
    }
@@ -42,3 +42,5 @@ if sudo /opt/google-cloud-sdk/bin/kubectl get deployment redis-master-${STAGE}
       updateDeployments
    }
 fi
+
+sudo /opt/google-cloud-sdk/bin/kubectl rollout status deployment/redis-${STAGE}
