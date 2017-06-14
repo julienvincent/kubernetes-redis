@@ -1,2 +1,2 @@
-# ODO reliable, replicated redis cluster with health checking and failover
+# ODO reliable, replicated redis cluster with health checking and failover.
 
