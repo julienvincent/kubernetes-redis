@@ -4,16 +4,16 @@ general:
       - master
       - staging
 
-machine:
-  services:
-    - docker
+# machine:
+#   services:
+#     - docker
 
 dependencies:
   pre:
     - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update --version=156.0.0
     - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update kubectl --version=156.0.0
-  override:
-    - docker build -t redis .
+  # override:
+  #   - docker build -t redis .
   post:
     - echo ${GCLOUD_KEY} | base64 --decode > service-account.json
 
