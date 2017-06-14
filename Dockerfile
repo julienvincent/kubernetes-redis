@@ -20,8 +20,6 @@ COPY container/redis-master.conf /redis-master/redis.conf
 COPY container/redis-slave.conf /redis-slave/redis.conf
 COPY container/run.sh /run.sh
 
-RUN echo never > /sys/kernel/mm/transparent_hugepage/enabled
-
 CMD [ "/run.sh" ]
 
 ENTRYPOINT [ "bash", "-c" ]
