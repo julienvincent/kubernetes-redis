@@ -1,18 +1,18 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: redis-master-${STAGE}
+  name: redis-${STAGE}
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
         type: redis
-        role: master
+        role: slave
         stage: ${STAGE}
     spec:
       containers:
-        - name: redis-master
+        - name: redis
           image: ${IMAGE_NAME}
           resources:
             limits:
@@ -23,8 +23,6 @@ spec:
           ports:
             - containerPort: 6379
           env:
-            - name: MASTER
-              value: "true"
             - name: STAGE
               value: ${STAGE}
       volumes:

@@ -19,7 +19,7 @@ envsubst < deployment/Service.yml > _Service.yml
 envsubst < deployment/SentinelService.yml > _SentinelService.yml
 
 envsubst < deployment/Catalyst.yml > _Catalyst.yml
-envsubst < deployment/Master.yml > _Master.yml
+envsubst < deployment/Slave.yml > _Slave.yml
 envsubst < deployment/Sentinel.yml > _Sentinel.yml
 
 function updateDeployments {

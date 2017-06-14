@@ -8,5 +8,5 @@ spec:
       targetPort: 6379
   selector:
     type: redis
-    role: master
+    role: slave
     stage: ${STAGE}
