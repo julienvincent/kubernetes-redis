@@ -21,23 +21,19 @@ envsubst < deployment/Catalyst.yml > _Catalyst.yml
 envsubst < deployment/Slave.yml > _Slave.yml
 envsubst < deployment/Sentinel.yml > _Sentinel.yml
 
-function updateDeployments {
-   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _SentinelService.yml --record
-
-   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Slave.yml --record
-   sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Sentinel.yml --record
-}
-
-if sudo /opt/google-cloud-sdk/bin/kubectl get deployment redis-${STAGE}
+if sudo /opt/google-cloud-sdk/bin/kubectl get deployment redis-sentinel-${STAGE}
    then {
-      updateDeployments
+      sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Slave.yml --record
    }
    else {
       # If no redis deployments exist yet, start the catalyst before furthur
       # deployments
-
       sudo /opt/google-cloud-sdk/bin/kubectl create -f _Catalyst.yml --record
-      updateDeployments
+
+      sudo /opt/google-cloud-sdk/bin/kubectl apply -f _SentinelService.yml --record
+
+      sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Sentinel.yml --record
+      sudo /opt/google-cloud-sdk/bin/kubectl apply -f _Slave.yml --record
    }
 fi
 
