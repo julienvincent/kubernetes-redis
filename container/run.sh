@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SERVICE_NAME=redis-sentinel-${STAGE}
+SENTINEL_SERVICE_HOST=redis-sentinel-${STAGE}
 
 function launchmaster() {
   if [[ ! -e /redis-master-data ]]; then
@@ -26,7 +26,7 @@ function launchmaster() {
 
 function launchsentinel() {
   while true; do
-    master=$(redis-cli -h ${SERVICE_NAME} -p 26379 --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | cut -d' ' -f1)
+    master=$(redis-cli -h ${SENTINEL_SERVICE_HOST} -p 26379 --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | cut -d' ' -f1)
     if [[ -n ${master} ]]; then
       master="${master//\"}"
     else
@@ -54,7 +54,7 @@ function launchsentinel() {
 
 function launchslave() {
   while true; do
-    master=$(redis-cli -h ${SERVICE_NAME} -p 26379 --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | cut -d' ' -f1)
+    master=$(redis-cli -h ${SENTINEL_SERVICE_HOST} -p 26379 --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | cut -d' ' -f1)
     if [[ -n ${master} ]]; then
       master="${master//\"}"
     else
