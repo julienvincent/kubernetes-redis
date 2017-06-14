@@ -8,4 +8,5 @@ spec:
       targetPort: 26379
   selector:
     type: redis
+    role: sentinel
     stage: ${STAGE}
