@@ -11,6 +11,20 @@ spec:
         role: sentinel
         stage: ${STAGE}
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: role
+                  operator: In
+                  values:
+                    - sentinel
+                - key: stage
+                  operator: In
+                  values:
+                    - ${STAGE}
+            topologyKey: "kubernetes.io/hostname"
       containers:
         - name: redis-sentinel
           image: ${IMAGE_NAME}
