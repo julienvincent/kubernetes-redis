@@ -1,30 +1,41 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
-  name: redis-${STAGE}
+  name: redis-slave-${STAGE}
+  namespace: ${NAMESPACE}
 spec:
-  replicas: 3
+  serviceName: "redis-slave-${STAGE}"
+  replicas: 2
   template:
     metadata:
       labels:
-        type: redis
-        role: slave
+        type: redis-slave
         stage: ${STAGE}
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: type
+                  operator: In
+                  values:
+                    - redis-slave
+                - key: stage
+                  operator: In
+                  values:
+                    - ${STAGE}
+            topologyKey: "kubernetes.io/hostname"
       containers:
-        - name: redis
-          image: ${IMAGE_NAME}
-          resources:
-            limits:
-              cpu: "0.1"
-          volumeMounts:
-            - mountPath: /redis-master-data
-              name: data
-          ports:
-            - containerPort: 6379
-          env:
-            - name: STAGE
-              value: ${STAGE}
-      volumes:
-        - name: data
-          emptyDir: {}
+      - name: redis-slave
+        image: ${IMAGE_NAME}
+        readinessProbe:
+          exec:
+            command: ['redis-cli', '-p', '6379', 'info', 'server']
+        ports:
+          - containerPort: 6379
+        env:
+          - name: STAGE
+            value: ${STAGE}
+          - name: NAMESPACE
+            value: ${NAMESPACE}

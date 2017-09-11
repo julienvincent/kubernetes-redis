@@ -1,14 +1,15 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
   name: redis-sentinel-${STAGE}
+  namespace: ${NAMESPACE}
 spec:
-  replicas: 1
+  serviceName: "redis-sentinel-${STAGE}"
+  replicas: 2
   template:
     metadata:
       labels:
-        type: redis
-        role: sentinel
+        type: redis-sentinel
         stage: ${STAGE}
     spec:
       affinity:
@@ -16,22 +17,27 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
           - labelSelector:
               matchExpressions:
-                - key: role
+                - key: type
                   operator: In
                   values:
-                    - sentinel
+                    - redis-sentinel
                 - key: stage
                   operator: In
                   values:
                     - ${STAGE}
             topologyKey: "kubernetes.io/hostname"
       containers:
-        - name: redis-sentinel
-          image: ${IMAGE_NAME}
-          ports:
-            - containerPort: 26379
-          env:
-            - name: SENTINEL
-              value: "true"
-            - name: STAGE
-              value: ${STAGE}
+      - name: sentinel
+        image: ${IMAGE_NAME}
+        readinessProbe:
+          exec:
+            command: ['redis-cli', '-p', '26379', 'info', 'server']
+        ports:
+          - containerPort: 26379
+        env:
+          - name: REDIS_INSTANCE_TYPE
+            value: sentinel
+          - name: STAGE
+            value: ${STAGE}
+          - name: NAMESPACE
+            value: ${NAMESPACE}

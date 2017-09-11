@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-sentinel-${STAGE}
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 26379
+      targetPort: 26379
+  selector:
+    type: redis-sentinel
+    stage: ${STAGE}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-slave-${STAGE}
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    type: redis-slave
+    stage: ${STAGE}

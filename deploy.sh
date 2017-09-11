@@ -1,25 +1,35 @@
 # #!/usr/bin/env bash
 export STAGE="$1"
+export NAMESPACE="$2"
 export IMAGE_NAME=eu.gcr.io/one-day-only-infrastructure/redis-${STAGE}:$(uuidgen)
+
+if [ -z "${STAGE}" ]
+then {
+    echo No stage defined
+    exit 1
+  }
+fi
+
+if [ -z "${STAGE}" ]
+then {
+    NAMESPACE=default
+  }
+fi
 
 docker build . -t ${IMAGE_NAME}
 
 if gcloud docker -- push ${IMAGE_NAME}
-  then echo "container pushed correctly"
-  # If the container push failed, we do not want to trigger a kube deploy.
-  else echo "error pushing container to registry" && exit 1
+then echo "container pushed correctly"
+else echo "error pushing container to registry" && exit 1
 fi
 
-envsubst < deployment/SentinelService.yml > _SentinelService.yml
-envsubst < deployment/Catalyst.yml > _Catalyst.yml
-envsubst < deployment/Sentinel.yml > _Sentinel.yml
-envsubst < deployment/Slave.yml > _Slave.yml
+mkdir _redis
 
-kubectl create -f _Catalyst.yml --record
-kubectl apply -f _SentinelService.yml --record
-kubectl apply -f _Sentinel.yml --record
-kubectl apply -f _Slave.yml --record
+envsubst < deployment/Namespace.yml > _redis/00Namespace.yml
+envsubst < deployment/Services.yml > _redis/10Services.yml
+envsubst < deployment/Sentinel.yml > _redis/20Sentinel.yml
+envsubst < deployment/Slave.yml > _redis/Slave.yml
 
-kubectl rollout status deployment/redis-${STAGE}
+kubectl apply -f ./_redis/ --record
 
-rm _Catalyst.yml _SentinelService.yml _Sentinel.yml _Slave.yml
+rm -rf _redis
