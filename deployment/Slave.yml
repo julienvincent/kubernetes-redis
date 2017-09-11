@@ -5,7 +5,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
   serviceName: "redis-slave-${STAGE}"
-  replicas: 2
+  replicas: 4
   template:
     metadata:
       labels:

@@ -1,6 +1,13 @@
 #!/bin/bash
 mkdir /redis-master-data
 
+########################################################
+# Attempt to query one of the live sentinel instances
+# for the current master.
+
+# If no sentinels are alive or no masters are currently
+# known then it returns a non-0 exit code.
+########################################################
 function getMasterFromSentinel {
   ADDRESS=$(timeout -t 2 redis-cli -h redis-sentinel-${STAGE} -p 26379 --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | cut -d' ' -f1)
 
@@ -13,7 +20,7 @@ function getMasterFromSentinel {
     }
   fi
 
-  redis-cli -h ${ADDRESS} INFO
+  redis-cli -h ${ADDRESS} INFO > /dev/null 2>&1
   if [[ ${?} == 0 ]]; then
     echo ${ADDRESS}
     return 0
@@ -22,6 +29,17 @@ function getMasterFromSentinel {
   return 1
 }
 
+########################################################
+# Query all ready pod ip addresses that the slave
+# service is currently matching over. 
+
+# If there are at least one ip in the collection, loop 
+# over the ip addresses and run a redis-cli INFO query. 
+
+# If any of the INFO queries contain 'role:master' then
+# return the matching ip address, otherwise return with
+# a non-0 exit code
+########################################################
 function getMasterFromApi {
   TOKEN=$(</var/run/secrets/kubernetes.io/serviceaccount/token)
   K8_URL=https://${KUBERNETES_SERVICE_HOST}/api/v1/namespaces/${NAMESPACE}/endpoints/redis-slave-${STAGE}
@@ -50,6 +68,10 @@ function getMasterFromApi {
   return 1
 }
 
+########################################################
+# Attempt to find an active master redis instance by
+# querying first the sentinels and then the api in order
+########################################################
 function getCurrentMaster {
   CURRENT_MASTER=$(getMasterFromSentinel)
   if [[ ${?} == 0 ]]; then
@@ -70,6 +92,14 @@ function launchMaster {
   redis-server /redis-master/redis.conf --protected-mode no
 }
 
+########################################################
+# Start looking for a redis master instance with 10
+# second delays.
+
+# If and when a master instance is found, configure the
+# redis instance to be a sentinel and monitor the 
+# discoverred master instance.
+########################################################
 function launchSentinel {
   while true; do
     MASTER=$(getCurrentMaster)
