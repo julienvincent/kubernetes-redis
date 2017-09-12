@@ -26,15 +26,15 @@ function getMasterFromSentinel {
 }
 
 ########################################################
-# Query all ready pod ip addresses that the slave
+# Query all ready pod ip addresses that the slave redis
 # service is currently matching over.
 
-# If there are at least one ip in the collection, loop
-# over the ip addresses and run a redis-cli INFO query.
+# If there is at least one ip in the collection, loop
+# over the ip addresses and run a redis INFO query.
 
-# If any of the INFO queries contain 'role:master' then
-# return the matching ip address, otherwise return with
-# a non-0 exit code
+# If any of the INFO query responses contain 'role:master' 
+# then return the matching ip address, otherwise return 
+# with a non-0 exit code
 ########################################################
 function getMasterFromApi {
   TOKEN=$(</var/run/secrets/kubernetes.io/serviceaccount/token)
@@ -66,7 +66,11 @@ function getMasterFromApi {
 
 ########################################################
 # Attempt to find an active master redis instance by
-# querying first the sentinels and then the api in order
+# querying first the sentinels and then the kubernetes
+# rest api.
+
+# If no master instances are found, return a non-0 exit
+# code
 ########################################################
 function getCurrentMaster {
   CURRENT_MASTER=$(getMasterFromSentinel)
@@ -89,12 +93,11 @@ function launchMaster {
 }
 
 ########################################################
-# Start looking for a redis master instance with 10
-# second delays.
+# Start searching for a redis master instance.
 
 # If and when a master instance is found, configure the
-# redis instance to be a sentinel and monitor the
-# discoverred master instance.
+# redis instance as a sentinel and monitor the
+# discovered master instance.
 ########################################################
 function launchSentinel {
   while true; do
@@ -125,6 +128,16 @@ function launchSlave {
   redis-server /redis-slave/redis.conf --protected-mode no
 }
 
+########################################################
+# Start searching for a redis master instance and
+# launch a slave redis instance once one is found.
+
+# If on the first iteratoin no master is found and the
+# hostname of the searching pod is the first slave
+# pod (identified by the pattern redis-slave-<stage>-0)
+# then stop searching and lauch a master redis
+# instance. This is to bootstrap the cluster
+########################################################
 function launch {
   while true; do
     MASTER=$(getCurrentMaster)
