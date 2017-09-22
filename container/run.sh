@@ -25,18 +25,7 @@ function getMasterFromSentinel {
   return 1
 }
 
-########################################################
-# Query all ready pod ip addresses that the slave redis
-# service is currently matching over.
-
-# If there is at least one ip in the collection, loop
-# over the ip addresses and run a redis INFO query.
-
-# If any of the INFO query responses contain 'role:master' 
-# then return the matching ip address, otherwise return 
-# with a non-0 exit code
-########################################################
-function getMasterFromApi {
+function getIPAddressesFromApi {
   TOKEN=$(</var/run/secrets/kubernetes.io/serviceaccount/token)
   K8_URL=https://${KUBERNETES_SERVICE_HOST}/api/v1/namespaces/${NAMESPACE}/endpoints/redis-slave-${STAGE}
   ADDRESSES=$(curl -sSk -H "Authorization: Bearer ${TOKEN}" ${K8_URL} | jq -r '.subsets[].addresses')
@@ -46,6 +35,25 @@ function getMasterFromApi {
   fi
   
   IP_ADDRESSES=( $(echo ${ADDRESSES} | jq -r '.[].ip') )
+}
+
+########################################################
+# Query all ready pod ip addresses that the slave redis
+# service is currently matching over.
+
+# If there is at least one ip in the collection, loop
+# over the ip addresses and run a redis INFO query.
+
+# If any of the INFO query responses contain 'role:master'
+# then return the matching ip address, otherwise return
+# with a non-0 exit code
+########################################################
+function getMasterFromApi {
+  getIPAddressesFromApi
+  
+  if [[ ${?} == 1 ]]; then
+    return 1
+  fi
   
   for i in "${IP_ADDRESSES[@]}"; do
     INSTANCE_ROLE=$(timeout -t 2 redis-cli -h ${i} INFO | grep ^role | tr -d '\040\011\012\015')
@@ -115,7 +123,8 @@ function launchSentinel {
   sentinel_conf=sentinel.conf
   
   echo "sentinel monitor mymaster ${MASTER} 6379 2" > ${sentinel_conf}
-  echo "sentinel down-after-milliseconds mymaster 5000" >> ${sentinel_conf}
+  echo "sentinel down-after-milliseconds mymaster 60000" >> ${sentinel_conf}
+  echo "sentinel failover-timeout mymaster 180000" >> ${sentinel_conf}
   echo "sentinel parallel-syncs mymaster 1" >> ${sentinel_conf}
   echo "bind 0.0.0.0" >> ${sentinel_conf}
   
@@ -149,14 +158,25 @@ function launch {
     fi
     
     if [[ "${HOSTNAME}" == "redis-slave-${STAGE}-0" ]]; then
-      LAUNCH_MASTER=1
-      break
+      getIPAddressesFromApi
+      
+      if [[ ${?} == 1 ]]; then
+        LAUNCH_MASTER=1
+        break
+      fi
+      
+      if [[ ${#IP_ADDRESSES[@]} < 2 ]]; then
+        LAUNCH_MASTER=1
+        break
+      fi
     fi
     
     echo "Couldn't find master. Retrying in 10..."
     sleep 10
   done
   
+  # If LAUNCH_MASTER is set, then this is the bootstrapping
+  # master instance and should not wait for failover
   if [[ -n ${LAUNCH_MASTER} ]]; then
     launchMaster
   fi
